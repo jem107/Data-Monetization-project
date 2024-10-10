@@ -33,6 +33,8 @@ function processCSV(csvText) {
     // First row contains strategy names, so we'll store that
     strategies = rows[0].slice(1);  // Ignore the first column (questions)
 
+    console.log("Strategies loaded:", strategies); // Log the strategies to check
+
     // Process each row for questions and their respective answers
     for (let i = 1; i < rows.length; i++) {
         const question = rows[i][0];  // First column is the question
@@ -46,6 +48,8 @@ function processCSV(csvText) {
 
         questions.push({ question, answers: uniqueAnswers, allAnswers: answers });
     }
+
+    console.log("Questions loaded:", questions); // Log questions to check if they're loaded correctly
 
     // Start with the first question
     displayQuestion(0);
@@ -115,6 +119,8 @@ function calculateResult() {
     // Initialize score for each strategy
     let score = Array(strategies.length).fill(0);
 
+    console.log("Selected answers:", selectedAnswers); // Debugging log
+
     // Iterate over selected answers
     selectedAnswers.forEach(answer => {
         questions.forEach((q, questionIndex) => {
@@ -127,14 +133,24 @@ function calculateResult() {
         });
     });
 
+    console.log("Score array:", score); // Debugging log
+
     // Find the highest score
     const maxScore = Math.max(...score);
+    console.log("Max score:", maxScore); // Debugging log
 
     // Find all strategies with the highest score
     const bestStrategies = strategies.filter((strategy, index) => score[index] === maxScore);
 
-    // Display all the strategies that are tied with the highest score
-    document.getElementById('result').textContent = `Best Strategies: ${bestStrategies.join(', ')}`;
+    console.log("Best Strategies:", bestStrategies); // Debugging log
+
+    // If no strategy is found, show a message instead of an empty result
+    if (bestStrategies.length === 0) {
+        document.getElementById('result').textContent = "No strategies could be determined based on your answers.";
+    } else {
+        document.getElementById('result').textContent = `Best Strategies: ${bestStrategies.join(', ')}`;
+    }
+
     document.getElementById('qna').style.display = 'none';  // Hide the Q&A
     document.getElementById('result-section').style.display = 'block';  // Show the result
 }
