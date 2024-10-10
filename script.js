@@ -21,8 +21,14 @@ document.addEventListener('DOMContentLoaded', function () {
 let questions = [];
 let strategies = [];
 
+// Custom function to split the CSV row but keep content inside parentheses together
+function smartSplit(row) {
+    const regex = /(?:\([^()]*\)|[^,])+/g;
+    return row.match(regex).map(part => part.trim());
+}
+
 function processCSV(csvText) {
-    const rows = csvText.split('\n').map(row => row.split(','));
+    const rows = csvText.split('\n').map(row => smartSplit(row));
 
     strategies = rows[0].slice(1);  // Ignore the first column (questions)
 
@@ -31,8 +37,11 @@ function processCSV(csvText) {
         const question = rows[i][0];  // First column is the question
         let answers = rows[i].slice(1);  // Remaining columns are the answers
 
-        answers = answers.map(answer => answer.replace(/["']/g, '').trim());  // Clean up answers
-        const uniqueAnswers = [...new Set(answers)];  // Remove duplicates
+        // Clean up answers (trim spaces and keep everything inside parentheses intact)
+        answers = answers.map(answer => answer.replace(/["']/g, '').trim());
+
+        // Remove duplicate answers
+        const uniqueAnswers = [...new Set(answers)];
 
         questions.push({ question, answers: uniqueAnswers });
     }
