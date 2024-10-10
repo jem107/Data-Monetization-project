@@ -5,8 +5,6 @@ let selectedAnswers = [];
 document.addEventListener('DOMContentLoaded', function () {
     const csvUrl = 'https://raw.githubusercontent.com/jem107/Data-Monetization-project/refs/heads/main/Q%26A%20Final.csv';
 
-    console.log("Fetching CSV from:", csvUrl);
-    
     fetch(csvUrl)
         .then(response => {
             if (!response.ok) {
@@ -15,8 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.text();
         })
         .then(csvText => {
-            console.log("CSV Fetched successfully:");
-            console.log(csvText); // Log the raw CSV data
             processCSV(csvText);  // Call the function to process the CSV
         })
         .catch(error => console.error('Error fetching CSV:', error));
@@ -28,20 +24,16 @@ let strategies = [];
 // Custom function to split the CSV row but keep content inside parentheses together
 function smartSplit(row) {
     const regex = /(?:\([^()]*\)|[^,])+/g;
-    const result = row.match(regex).map(part => part.trim());
-    console.log("Smart Split Result:", result); // Log the split row
-    return result;
+    return row.match(regex).map(part => part.trim());
 }
 
 function processCSV(csvText) {
     const rows = csvText.split('\n').map(row => smartSplit(row));
 
-    console.log("Parsed Rows:", rows);  // Log the parsed rows
-
+    // First row contains strategy names, so we'll store that
     strategies = rows[0].slice(1);  // Ignore the first column (questions)
-    console.log("Strategies:", strategies); // Log strategies to ensure correct parsing
 
-    // Process questions and answers
+    // Process each row for questions and their respective answers
     for (let i = 1; i < rows.length; i++) {
         const question = rows[i][0];  // First column is the question
         let answers = rows[i].slice(1);  // Remaining columns are the answers
@@ -49,13 +41,10 @@ function processCSV(csvText) {
         // Clean up answers (trim spaces and keep everything inside parentheses intact)
         answers = answers.map(answer => answer.replace(/["']/g, '').trim());
 
-        // Remove duplicate answers
+        // Remove duplicate answers for display purposes, but we'll track all possible answers later
         const uniqueAnswers = [...new Set(answers)];
 
-        console.log(`Question: ${question}`);
-        console.log(`Answers: ${uniqueAnswers}`);
-
-        questions.push({ question, answers: uniqueAnswers });
+        questions.push({ question, answers: uniqueAnswers, allAnswers: answers });
     }
 
     // Start with the first question
@@ -63,15 +52,8 @@ function processCSV(csvText) {
 }
 
 function displayQuestion(index) {
-    console.log(`Displaying question ${index}`);
-
     const questionContainer = document.getElementById('questions-container');
     const nextButton = document.getElementById('next-btn');
-
-    if (!questionContainer) {
-        console.error("Question container not found!");
-        return;
-    }
 
     questionContainer.innerHTML = '';  // Clear previous question
 
@@ -81,11 +63,9 @@ function displayQuestion(index) {
 
     const label = document.createElement('h3');
     label.textContent = q.question;
-    console.log(`Question text: ${q.question}`);  // Log the question text
     questionDiv.appendChild(label);
 
     q.answers.forEach((answer, answerIndex) => {
-        console.log(`Answer: ${answer}`);  // Log the answers to ensure they are correct
         const checkboxLabel = document.createElement('label');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -112,6 +92,7 @@ function nextQuestion() {
         return;
     }
 
+    // Collect selected answers
     checkboxes.forEach(checkbox => {
         selectedAnswers.push(checkbox.value);
     });
@@ -131,11 +112,14 @@ function nextQuestion() {
 }
 
 function calculateResult() {
+    // Initialize score for each strategy
     let score = Array(strategies.length).fill(0);
 
+    // Iterate over selected answers
     selectedAnswers.forEach(answer => {
-        questions.forEach((q, index) => {
-            q.answers.forEach((ans, answerIndex) => {
+        questions.forEach((q, questionIndex) => {
+            q.allAnswers.forEach((ans, answerIndex) => {
+                // Increment score for all strategies where the answer belongs
                 if (answer === ans) {
                     score[answerIndex]++;
                 }
@@ -143,13 +127,13 @@ function calculateResult() {
         });
     });
 
+    // Find the strategy with the highest score
     const maxScore = Math.max(...score);
     const bestStrategyIndex = score.indexOf(maxScore);
     const bestStrategy = strategies[bestStrategyIndex];
 
-    console.log("Best strategy:", bestStrategy); // Log the best strategy
-
-    document.getElementById('result').textContent = bestStrategy;
+    // Show the best strategy
+    document.getElementById('result').textContent = `Best Strategy: ${bestStrategy}`;
     document.getElementById('qna').style.display = 'none';  // Hide the Q&A
     document.getElementById('result-section').style.display = 'block';  // Show the result
 }
