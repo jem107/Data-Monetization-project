@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const csvUrl = 'https://raw.githubusercontent.com/your-username/your-repository-name/main/Q&A%20Final.csv'; // Update with the actual GitHub URL
+    const csvUrl = 'https://raw.githubusercontent.com/jem107/Data-Monetization-project/refs/heads/main/Q%26A%20Final.csv'; // Update with the actual GitHub URL
 
     fetch(csvUrl)
         .then(response => response.text())
