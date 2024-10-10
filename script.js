@@ -1,9 +1,20 @@
+let currentQuestionIndex = 0;
+let selectedAnswers = [];
+
+// Fetch the CSV file and load the questions
 document.addEventListener('DOMContentLoaded', function () {
-    const csvUrl = 'https://raw.githubusercontent.com/jem107/Data-Monetization-project/refs/heads/main/Q%26A%20Final.csv'; // Update with the actual GitHub URL
+    const csvUrl = 'https://raw.githubusercontent.com/your-username/your-repository-name/main/Q&A%20Final.csv'; // Replace with actual URL
 
     fetch(csvUrl)
-        .then(response => response.text())
-        .then(csvText => processCSV(csvText))
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(csvText => {
+            processCSV(csvText);  // Call the function to process the CSV
+        })
         .catch(error => console.error('Error fetching CSV:', error));
 });
 
@@ -13,7 +24,6 @@ let strategies = [];
 function processCSV(csvText) {
     const rows = csvText.split('\n').map(row => row.split(','));
 
-    // First row is the strategy names
     strategies = rows[0].slice(1);  // Ignore the first column (questions)
 
     // Process questions and answers
@@ -21,71 +31,93 @@ function processCSV(csvText) {
         const question = rows[i][0];  // First column is the question
         let answers = rows[i].slice(1);  // Remaining columns are the answers
 
-        // Clean up answers (remove quotation marks and trim spaces)
-        answers = answers.map(answer => answer.replace(/["']/g, '').trim());
-
-        // Remove duplicate answers
-        const uniqueAnswers = [...new Set(answers)];
+        answers = answers.map(answer => answer.replace(/["']/g, '').trim());  // Clean up answers
+        const uniqueAnswers = [...new Set(answers)];  // Remove duplicates
 
         questions.push({ question, answers: uniqueAnswers });
     }
 
-    // Display the questions in the form
-    displayQuestions();
+    // Start with the first question
+    displayQuestion(0);
 }
 
-function displayQuestions() {
-    const form = document.getElementById('qna-form');
-    form.innerHTML = '';  // Clear the form
+function displayQuestion(index) {
+    const questionContainer = document.getElementById('questions-container');
+    const nextButton = document.getElementById('next-btn');
 
-    questions.forEach((q, index) => {
-        const questionDiv = document.createElement('div');
-        questionDiv.classList.add('question');
+    questionContainer.innerHTML = '';  // Clear previous question
 
-        const label = document.createElement('label');
-        label.textContent = q.question;
-        questionDiv.appendChild(label);
+    const q = questions[index];
+    const questionDiv = document.createElement('div');
+    questionDiv.classList.add('question-container', 'active');
 
-        // Create a multiple select dropdown
-        const select = document.createElement('select');
-        select.id = `question-${index}`;
-        select.name = `question-${index}`;
-        select.multiple = true;  // Enable multiple selection
+    const label = document.createElement('h3');
+    label.textContent = q.question;
+    questionDiv.appendChild(label);
 
-        q.answers.forEach(answer => {
-            const option = document.createElement('option');
-            option.value = answer;
-            option.textContent = answer;
-            select.appendChild(option);
-        });
-
-        questionDiv.appendChild(select);
-        form.appendChild(questionDiv);
+    q.answers.forEach((answer, answerIndex) => {
+        const checkboxLabel = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = answer;
+        checkbox.name = `question-${index}`;
+        checkboxLabel.appendChild(checkbox);
+        checkboxLabel.appendChild(document.createTextNode(answer));
+        questionDiv.appendChild(checkboxLabel);
+        questionDiv.appendChild(document.createElement('br'));
     });
+
+    questionContainer.appendChild(questionDiv);
+
+    // Show the next button after the question is displayed
+    nextButton.style.display = 'inline-block';
+}
+
+function nextQuestion() {
+    const questionContainer = document.querySelector('.question-container');
+    const checkboxes = document.querySelectorAll(`input[name=question-${currentQuestionIndex}]:checked`);
+
+    if (checkboxes.length === 0) {
+        alert('Please select at least one answer');
+        return;
+    }
+
+    checkboxes.forEach(checkbox => {
+        selectedAnswers.push(checkbox.value);
+    });
+
+    questionContainer.classList.remove('active');
+    questionContainer.style.opacity = '0';
+
+    // Move to the next question or show the result
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+        setTimeout(() => {
+            displayQuestion(currentQuestionIndex);
+        }, 500);  // Delay to create a smooth transition
+    } else {
+        calculateResult();
+    }
 }
 
 function calculateResult() {
-    const form = document.getElementById('qna-form');
     let score = Array(strategies.length).fill(0);
 
-    questions.forEach((q, index) => {
-        const selectedOptions = Array.from(form[`question-${index}`].selectedOptions);
-        selectedOptions.forEach(option => {
-            // Find which strategy contains the selected option
-            q.answers.forEach((answer, answerIndex) => {
-                if (option.value === answer) {
+    selectedAnswers.forEach(answer => {
+        questions.forEach((q, index) => {
+            q.answers.forEach((ans, answerIndex) => {
+                if (answer === ans) {
                     score[answerIndex]++;
                 }
             });
         });
     });
 
-    // Find the strategy with the most matching answers
     const maxScore = Math.max(...score);
     const bestStrategyIndex = score.indexOf(maxScore);
     const bestStrategy = strategies[bestStrategyIndex];
 
-    // Display the result
     document.getElementById('result').textContent = bestStrategy;
-    document.getElementById('result-section').style.display = 'block';
+    document.getElementById('qna').style.display = 'none';  // Hide the Q&A
+    document.getElementById('result-section').style.display = 'block';  // Show the result
 }

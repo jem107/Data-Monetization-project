@@ -6,6 +6,22 @@
     <title>Q&A - Select Your Strategy</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        .question-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .question-container.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .result {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -19,13 +35,15 @@
 
     <section id="qna" class="qna">
         <div class="container">
-            <h2>Answer the questions to determine the best strategy for your data</h2>
-            <form id="qna-form"></form>
-            <button onclick="calculateResult()">Submit Answers</button>
+            <h2 id="question-title">Answer the questions to determine the best strategy for your data</h2>
+            <form id="qna-form">
+                <div id="questions-container"></div>
+            </form>
+            <button id="next-btn" style="display: none;" onclick="nextQuestion()">Next</button>
         </div>
     </section>
 
-    <section id="result-section" class="result" style="display:none;">
+    <section id="result-section" class="result">
         <div class="container">
             <h2>Your Best Matching Strategy is:</h2>
             <p id="result"></p>
