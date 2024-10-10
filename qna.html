@@ -10,27 +10,25 @@
 <body>
     <header class="header">
         <div class="container">
-            <h1>Profile Questionnaire for Data Collection</h1>
+            <h1>Select Your Data Monetization Strategy</h1>
             <nav class="navbar">
                 <a href="index.html">Home</a>
-                <a href="#qna">Q&A</a>
-                <a href="#guidelines">Guidelines</a>
             </nav>
         </div>
     </header>
 
     <section id="qna" class="qna">
         <div class="container">
-            <h2>Answer the Questions Below to Help Us Understand Your Data Needs</h2>
-            <input type="file" id="upload" accept=".xlsx, .xls" />
-            <div id="questions-container"></div>
+            <h2>Answer the questions to determine the best strategy for your data</h2>
+            <form id="qna-form"></form>
+            <button onclick="calculateResult()">Submit Answers</button>
+        </div>
+    </section>
 
-            <form id="qna-form">
-                <!-- Example Question 1 -->
-                <div id="questions-container"></div>
-
-                <button type="button" onclick="loadQuestions()">Load Questions</button>
-            </form>
+    <section id="result-section" class="result" style="display:none;">
+        <div class="container">
+            <h2>Your Best Matching Strategy is:</h2>
+            <p id="result"></p>
         </div>
     </section>
 
@@ -40,42 +38,6 @@
         </div>
     </footer>
 
-    <script>
-        function loadQuestions() {
-            fetch('questions.json')
-                .then(response => response.json())
-                .then(data => {
-                    const container = document.getElementById('questions-container');
-                    container.innerHTML = '';
-                    data.questions.forEach((question, index) => {
-                        const questionDiv = document.createElement('div');
-                        questionDiv.classList.add('question');
-
-                        const label = document.createElement('label');
-                        label.setAttribute('for', `question${index + 1}`);
-                        label.textContent = question.text;
-
-                        const select = document.createElement('select');
-                        select.id = `question${index + 1}`;
-                        select.name = `question${index + 1}`;
-
-                        question.options.forEach(option => {
-                            const optionElement = document.createElement('option');
-                            optionElement.value = option.value;
-                            optionElement.textContent = option.label;
-                            select.appendChild(optionElement);
-                        });
-
-                        questionDiv.appendChild(label);
-                        questionDiv.appendChild(select);
-                        container.appendChild(questionDiv);
-                    });
-                })
-                .catch(error => console.error('Error loading questions:', error));
-        }
-    </script>
-    <script src="script.js">
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
