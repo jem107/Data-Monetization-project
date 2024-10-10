@@ -127,13 +127,14 @@ function calculateResult() {
         });
     });
 
-    // Find the strategy with the highest score
+    // Find the highest score
     const maxScore = Math.max(...score);
-    const bestStrategyIndex = score.indexOf(maxScore);
-    const bestStrategy = strategies[bestStrategyIndex];
 
-    // Show the best strategy
-    document.getElementById('result').textContent = `Best Strategy: ${bestStrategy}`;
+    // Find all strategies with the highest score
+    const bestStrategies = strategies.filter((strategy, index) => score[index] === maxScore);
+
+    // Display all the strategies that are tied with the highest score
+    document.getElementById('result').textContent = `Best Strategies: ${bestStrategies.join(', ')}`;
     document.getElementById('qna').style.display = 'none';  // Hide the Q&A
     document.getElementById('result-section').style.display = 'block';  // Show the result
 }
